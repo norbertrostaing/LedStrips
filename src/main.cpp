@@ -39,11 +39,11 @@ void setup()
 	Serial.begin(115200);
 
 	initConfig();
-	setupEthernet();
-	setupWifi();
-	setupOSC();
-	setupWebServer();
-	setupArtnet();
+	//setupEthernet();
+	//setupWifi();
+	//setupOSC();
+	//setupWebServer();
+	//setupArtnet();
 	receivePin = 36;
 	setupDMX();
 	setupLeds();
@@ -55,7 +55,6 @@ long lastTest = 0;
 
 void loop()
 {
-	loopLeds();
 	vTaskDelay(5);
 	/*
 	if (lastTest + 22 < millis()) {
@@ -150,6 +149,8 @@ void onDmxFrame()
 	// 	Serial.print("\t");
 	// }
 	// Serial.println();
+
+	if (outputIsDirty) return;
 	String mode = config["mode"].as<String>();
 	if (mode == "rgb") {
 		computeRgbUniverse(dmxData, 0, 0);

@@ -1,20 +1,27 @@
 #include "ledStrip.h"
 #include "_config.h"
 
+TaskHandle_t TaskForLeds;
+
 std::vector<ledStripMain> strips;
 bool outputIsDirty = true;
 
-const uint16_t numPixels = 240;
+const uint16_t numPixels = 510;
 //const uint16_t numPixels = 120;
 
-NeoPixelBus<NeoGrbFeature, NeoEsp32Rmt0Ws2812xMethod> strip1(numPixels, 4);
-NeoPixelBus<NeoGrbFeature, NeoEsp32Rmt1Ws2812xMethod> strip2(numPixels, 5);
-NeoPixelBus<NeoGrbFeature, NeoEsp32Rmt2Ws2812xMethod> strip3(numPixels, 13);
-NeoPixelBus<NeoGrbFeature, NeoEsp32Rmt3Ws2812xMethod> strip4(numPixels, 14);
-NeoPixelBus<NeoGrbFeature, NeoEsp32Rmt4Ws2812xMethod> strip5(numPixels, 15);
-NeoPixelBus<NeoGrbFeature, NeoEsp32Rmt5Ws2812xMethod> strip6(numPixels, 16);
-NeoPixelBus<NeoGrbFeature, NeoEsp32Rmt6Ws2812xMethod> strip7(numPixels, 32);
-NeoPixelBus<NeoGrbFeature, NeoEsp32Rmt7Ws2812xMethod> strip8(numPixels, 33);
+//_____
+// NeoPixelBus<NeoGrbFeature, NeoEsp32Rmt0Ws2812xMethod> strip1(numPixels, 4);
+// NeoPixelBus<NeoGrbFeature, NeoEsp32Rmt1Ws2812xMethod> strip2(numPixels, 5);
+// NeoPixelBus<NeoGrbFeature, NeoEsp32Rmt2Ws2812xMethod> strip3(numPixels, 13);
+// NeoPixelBus<NeoGrbFeature, NeoEsp32Rmt3Ws2812xMethod> strip4(numPixels, 14);
+// NeoPixelBus<NeoGrbFeature, NeoEsp32Rmt4Ws2812xMethod> strip5(numPixels, 15);
+// NeoPixelBus<NeoGrbFeature, NeoEsp32Rmt5Ws2812xMethod> strip6(numPixels, 16);
+// NeoPixelBus<NeoGrbFeature, NeoEsp32Rmt6Ws2812xMethod> strip7(numPixels, 32);
+// NeoPixelBus<NeoGrbFeature, NeoEsp32Rmt7Ws2812xMethod> strip8(numPixels, 33);
+
+typedef NeoPixelBus<NeoGrbFeature, X4Ws2812xMethod> NPB;
+
+
 
 float mapFloat(float x, float in_min, float in_max, float out_min, float out_max)
 {
@@ -24,6 +31,7 @@ float mapFloat(float x, float in_min, float in_max, float out_min, float out_max
 void setPixel(int strip, int pixel, uint8_t r, uint8_t g, uint8_t b) {
 	RgbColor c(r, g, b);
 	switch (strip) {
+        //_____
 	    case 0: strip1.SetPixelColor(pixel, c); break;
 	    case 1: strip2.SetPixelColor(pixel, c); break;
 	    case 2: strip3.SetPixelColor(pixel, c); break;
@@ -112,6 +120,31 @@ void ledStripMain::update() {
     }
 }
 
+void loopLeds() {
+    vTaskDelay(5);
+	if (outputIsDirty) {
+		outputIsDirty = false;
+        long from = millis();
+        //_____
+        strip1.Show();
+        strip2.Show();
+        strip3.Show();
+        strip4.Show();
+        strip5.Show();
+        strip6.Show();
+        strip7.Show();
+        strip8.Show();  
+        long to = millis();
+        Serial.println("Show time: " + String(to - from) + " ms");
+    }
+}
+
+void TaskForLedsCode( void * pvParameters ){
+  for(;;){
+    loopLeds();
+  } 
+}
+
 
 
 void setupLeds() {
@@ -123,28 +156,23 @@ void setupLeds() {
 		strips[i].id = i;
 	}
 
+    //_____
     strip1.Begin();
     strip2.Begin();
     strip3.Begin();
     strip4.Begin();
 	strip5.Begin();
-	strip6.Begin();
+    strip6.Begin();
 	strip7.Begin();
 	strip8.Begin();  
+
+  xTaskCreatePinnedToCore(
+                    TaskForLedsCode,   /* Task function. */
+                    "TaskForLeds",     /* name of task. */
+                    10000,       /* Stack size of task */
+                    NULL,        /* parameter of the task */
+                    2,           /* priority of the task */
+                    &TaskForLeds,      /* Task handle to keep track of created task */
+                    1);          /* pin task to core 0 */                  
 }
 
-void loopLeds() {
-	if (outputIsDirty) {
-		outputIsDirty = false;
-        long from = millis();
-        strip1.Show();
-        strip2.Show();
-        strip3.Show();
-        strip4.Show();
-        strip5.Show();
-        strip6.Show();
-        strip7.Show();
-        strip8.Show();  
-        long to = millis();
-    }
-}

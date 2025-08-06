@@ -4,10 +4,11 @@ TaskHandle_t TaskForDMX;
 
 int transmitPin = 4;
 int receivePin = 5;
-int enablePin = 21;
+int enablePin = 4;
 
 dmx_port_t dmxPort = 1;
 
+byte dmxDataRcv[DMX_PACKET_SIZE];
 byte dmxData[DMX_PACKET_SIZE];
 
 bool dmxIsConnected = false;
@@ -24,8 +25,9 @@ void loopDMX() {
       if (!dmxIsConnected) {
         dmxIsConnected = true;
       }
-
-      dmx_read(dmxPort, dmxData, packet.size);
+      dmx_read(dmxPort, dmxDataRcv, packet.size);
+      Serial.println(packet.size);
+      memcpy(dmxData, dmxDataRcv, 512);
       onDmxFrame();
       }
     } else {
@@ -55,7 +57,7 @@ void setupDMX() {
                     "TaskForDMX",     /* name of task. */
                     10000,       /* Stack size of task */
                     NULL,        /* parameter of the task */
-                    1,           /* priority of the task */
+                    5,           /* priority of the task */
                     &TaskForDMX,      /* Task handle to keep track of created task */
                     1);          /* pin task to core 0 */                  
 
