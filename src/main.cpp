@@ -39,11 +39,11 @@ void setup()
 	Serial.begin(115200);
 
 	initConfig();
-	//setupEthernet();
-	//setupWifi();
-	//setupOSC();
-	//setupWebServer();
-	//setupArtnet();
+	setupEthernet();
+	setupWifi();
+	setupOSC();
+	setupWebServer();
+	setupArtnet();
 	receivePin = 36;
 	setupDMX();
 	setupLeds();
@@ -114,15 +114,12 @@ void computeStrips(uint8_t *data, int delta) {
 		}
 	}
 
-	for (int i = 0; i < 8; i++)
-	{
-		strips[i].update();
-	}
+	dataIsDirty = true;
 	long e = millis();
 	//Serial.println(strips[0].r);
 	//Serial.println(e-b);
 	//Serial.println("end");
-	outputIsDirty = true;
+	//outputIsDirty = true;
 }
 
 

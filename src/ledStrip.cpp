@@ -5,6 +5,7 @@ TaskHandle_t TaskForLeds;
 
 std::vector<ledStripMain> strips;
 bool outputIsDirty = true;
+bool dataIsDirty = true;
 
 const uint16_t numPixels = 510;
 //const uint16_t numPixels = 120;
@@ -19,8 +20,15 @@ const uint16_t numPixels = 510;
 // NeoPixelBus<NeoGrbFeature, NeoEsp32Rmt6Ws2812xMethod> strip7(numPixels, 32);
 // NeoPixelBus<NeoGrbFeature, NeoEsp32Rmt7Ws2812xMethod> strip8(numPixels, 33);
 
-typedef NeoPixelBus<NeoGrbFeature, X4Ws2812xMethod> NPB;
-
+typedef NeoPixelBus<NeoGrbFeature, X8Ws2812xMethod> NPB;
+NPB wsStrips[] = { {numPixels, 4},
+                 {numPixels, 5},
+                 {numPixels, 13},
+                 {numPixels, 14},
+                 {numPixels, 15},
+                 {numPixels, 16},
+                 {numPixels, 32},
+                 {numPixels, 33} };
 
 
 float mapFloat(float x, float in_min, float in_max, float out_min, float out_max)
@@ -30,17 +38,18 @@ float mapFloat(float x, float in_min, float in_max, float out_min, float out_max
 
 void setPixel(int strip, int pixel, uint8_t r, uint8_t g, uint8_t b) {
 	RgbColor c(r, g, b);
-	switch (strip) {
-        //_____
-	    case 0: strip1.SetPixelColor(pixel, c); break;
-	    case 1: strip2.SetPixelColor(pixel, c); break;
-	    case 2: strip3.SetPixelColor(pixel, c); break;
-	    case 3: strip4.SetPixelColor(pixel, c); break;
-	    case 4: strip5.SetPixelColor(pixel, c); break;
-	    case 5: strip6.SetPixelColor(pixel, c); break;
-	    case 6: strip7.SetPixelColor(pixel, c); break;
-	    case 7: strip8.SetPixelColor(pixel, c); break;
-	}
+	wsStrips[strip].SetPixelColor(pixel, c);
+	// switch (strip) {
+    //     //_____
+	//     case 0: wsStrips[0].SetPixelColor(pixel, c); break;
+	//     case 1: strip[0].SetPixelColor(pixel, c); break;
+	//     case 2: strip[0].SetPixelColor(pixel, c); break;
+	//     case 3: strip[0].SetPixelColor(pixel, c); break;
+	//     case 4: strip[0].SetPixelColor(pixel, c); break;
+	//     case 5: strip[0].SetPixelColor(pixel, c); break;
+	//     case 6: strip[0].SetPixelColor(pixel, c); break;
+	//     case 7: strip[0].SetPixelColor(pixel, c); break;
+	// }
 }
 
 
@@ -64,7 +73,8 @@ void ledStripDetail::update() {
 float ledStripDetail::getVal(float pos) {
     float r = (1+repetition*20.0);
     pos = pos*r;
-    pos = fmod(pos,2.0);
+    while(pos > 2.0) {pos -= 2.0f;}
+    //pos = fmod(pos,2.0);
     
     float valSolid = 0;
     if (size > 0) {
@@ -122,18 +132,31 @@ void ledStripMain::update() {
 
 void loopLeds() {
     vTaskDelay(5);
+    if (dataIsDirty) {
+        for (int i = 0; i < 8; i++)
+        {
+            strips[i].update();
+        }
+
+        dataIsDirty = false;
+        outputIsDirty = true;
+    }
+
 	if (outputIsDirty) {
 		outputIsDirty = false;
         long from = millis();
         //_____
-        strip1.Show();
-        strip2.Show();
-        strip3.Show();
-        strip4.Show();
-        strip5.Show();
-        strip6.Show();
-        strip7.Show();
-        strip8.Show();  
+        for (int i = 0; i< 8; i++) {
+            wsStrips[i].Show();
+        }
+        // strip1.Show();
+        // strip2.Show();
+        // strip3.Show();
+        // strip4.Show();
+        // strip5.Show();
+        // strip6.Show();
+        // strip7.Show();
+        // strip8.Show();  
         long to = millis();
         Serial.println("Show time: " + String(to - from) + " ms");
     }
@@ -157,21 +180,25 @@ void setupLeds() {
 	}
 
     //_____
-    strip1.Begin();
-    strip2.Begin();
-    strip3.Begin();
-    strip4.Begin();
-	strip5.Begin();
-    strip6.Begin();
-	strip7.Begin();
-	strip8.Begin();  
+        for (int i = 0; i< 8; i++) {
+        wsStrips[i].Begin();
+    }
+
+    // strip1.Begin();
+    // strip2.Begin();
+    // strip3.Begin();
+    // strip4.Begin();
+	// strip5.Begin();
+    // strip6.Begin();
+	// strip7.Begin();
+	// strip8.Begin();  
 
   xTaskCreatePinnedToCore(
                     TaskForLedsCode,   /* Task function. */
                     "TaskForLeds",     /* name of task. */
                     10000,       /* Stack size of task */
                     NULL,        /* parameter of the task */
-                    2,           /* priority of the task */
+                    3,           /* priority of the task */
                     &TaskForLeds,      /* Task handle to keep track of created task */
                     1);          /* pin task to core 0 */                  
 }

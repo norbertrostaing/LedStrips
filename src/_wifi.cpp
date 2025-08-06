@@ -57,7 +57,7 @@ void setupWifi() {
                     NULL,        /* parameter of the task */
                     1,           /* priority of the task */
                     &TaskForWifi,      /* Task handle to keep track of created task */
-                    1);          /* pin task to core 0 */                  
+                    0);          /* pin task to core 0 */                  
 }
 
 void configUpdatedWifi(String k) {

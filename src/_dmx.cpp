@@ -26,9 +26,11 @@ void loopDMX() {
         dmxIsConnected = true;
       }
       dmx_read(dmxPort, dmxDataRcv, packet.size);
-      Serial.println(packet.size);
-      memcpy(dmxData, dmxDataRcv, 512);
-      onDmxFrame();
+      if (packet.size == 513) {
+        Serial.println(packet.size);
+        memcpy(dmxData, dmxDataRcv, 512);
+        onDmxFrame();
+      }
       }
     } else {
       if (dmxIsConnected) {
@@ -57,7 +59,7 @@ void setupDMX() {
                     "TaskForDMX",     /* name of task. */
                     10000,       /* Stack size of task */
                     NULL,        /* parameter of the task */
-                    5,           /* priority of the task */
+                    3,           /* priority of the task */
                     &TaskForDMX,      /* Task handle to keep track of created task */
                     1);          /* pin task to core 0 */                  
 

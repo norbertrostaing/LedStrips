@@ -3,6 +3,7 @@
 #include <NeoPixelBus.h>
 
 extern bool outputIsDirty;
+extern bool dataIsDirty;
 
 void loopLeds();
 void setupLeds();
