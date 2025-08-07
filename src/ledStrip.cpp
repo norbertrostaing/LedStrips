@@ -7,7 +7,7 @@ std::vector<ledStripMain> strips;
 bool outputIsDirty = true;
 bool dataIsDirty = true;
 
-const uint16_t numPixels = 510;
+const uint16_t numPixels = 340;
 //const uint16_t numPixels = 120;
 
 //_____
@@ -158,7 +158,7 @@ void loopLeds() {
         // strip7.Show();
         // strip8.Show();  
         long to = millis();
-        Serial.println("Show time: " + String(to - from) + " ms");
+        //Serial.println("Show time: " + String(to - from) + " ms");
     }
 }
 
@@ -198,7 +198,7 @@ void setupLeds() {
                     "TaskForLeds",     /* name of task. */
                     10000,       /* Stack size of task */
                     NULL,        /* parameter of the task */
-                    3,           /* priority of the task */
+                    1,           /* priority of the task */
                     &TaskForLeds,      /* Task handle to keep track of created task */
                     1);          /* pin task to core 0 */                  
 }

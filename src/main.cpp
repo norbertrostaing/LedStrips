@@ -41,7 +41,7 @@ void setup()
 	initConfig();
 	setupEthernet();
 	setupWifi();
-	setupOSC();
+	//setupOSC();
 	setupWebServer();
 	setupArtnet();
 	receivePin = 36;

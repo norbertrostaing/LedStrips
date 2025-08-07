@@ -13,9 +13,23 @@ byte dmxData[DMX_PACKET_SIZE];
 
 bool dmxIsConnected = false;
 
+int packetErrors = 0;
+
+
 portMUX_TYPE dmxMux = portMUX_INITIALIZER_UNLOCKED;
 
 void onDmxFrame();
+
+void setupDriver() {
+  packetErrors = 0;
+  dmx_config_t config = DMX_CONFIG_DEFAULT;
+  dmx_personality_t personalities[] = {
+    {1, "Default Personality"}
+  };
+  int personality_count = 1;
+  dmx_driver_install(dmxPort, &config, personalities, personality_count);
+  dmx_set_pin(dmxPort, transmitPin, receivePin, enablePin);
+}
 
 void loopDMX() {
   dmx_packet_t packet;
@@ -26,11 +40,18 @@ void loopDMX() {
         dmxIsConnected = true;
       }
       dmx_read(dmxPort, dmxDataRcv, packet.size);
+      //Serial.println(packet.size);
       if (packet.size == 513) {
-        Serial.println(packet.size);
         memcpy(dmxData, dmxDataRcv, 512);
         onDmxFrame();
-      }
+      } else if (packet.size == 1)
+        packetErrors++;
+        
+        if (packetErrors > 44) {
+        dmx_driver_delete(dmxPort);
+        setupDriver();
+        Serial.println("reboot DMX Service");
+        }
       }
     } else {
       if (dmxIsConnected) {
@@ -46,20 +67,13 @@ void TaskForDMXCode( void * pvParameters ){
 }
 
 void setupDMX() {
-  dmx_config_t config = DMX_CONFIG_DEFAULT;
-  dmx_personality_t personalities[] = {
-    {1, "Default Personality"}
-  };
-  int personality_count = 1;
-  dmx_driver_install(dmxPort, &config, personalities, personality_count);
-  dmx_set_pin(dmxPort, transmitPin, receivePin, enablePin);
-
+  setupDriver();
   xTaskCreatePinnedToCore(
                     TaskForDMXCode,   /* Task function. */
                     "TaskForDMX",     /* name of task. */
                     10000,       /* Stack size of task */
                     NULL,        /* parameter of the task */
-                    3,           /* priority of the task */
+                    1,           /* priority of the task */
                     &TaskForDMX,      /* Task handle to keep track of created task */
                     1);          /* pin task to core 0 */                  
 
