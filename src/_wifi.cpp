@@ -19,7 +19,7 @@ void loopWifi() {
         int count = 0;
         while(WiFi.status() != WL_CONNECTED && count < 10){
             count ++;
-            delay(500);
+            vTaskDelay(pdMS_TO_TICKS(500));
         }
 
         if (WiFi.status() == WL_CONNECTED) {
@@ -33,7 +33,7 @@ void loopWifi() {
             info["wifi/SM"] = "not connected";
         }
     }
-    delay(5000);
+    vTaskDelay(pdMS_TO_TICKS(5000));
 }
 
 void TaskForWifiCode( void * pvParameters ){
@@ -43,6 +43,7 @@ void TaskForWifiCode( void * pvParameters ){
 }
 
 void setupWifi() {
+  WiFi.mode(WIFI_AP_STA);
   WiFi.softAP(chipName+" "+String(chipId), "raclette");
 
   addStringConfig("wifi/name", "");
@@ -53,7 +54,7 @@ void setupWifi() {
   xTaskCreatePinnedToCore(
                     TaskForWifiCode,   /* Task function. */
                     "TaskForWifi",     /* name of task. */
-                    10000,       /* Stack size of task */
+                    2048,       /* Stack size of task */
                     NULL,        /* parameter of the task */
                     1,           /* priority of the task */
                     &TaskForWifi,      /* Task handle to keep track of created task */

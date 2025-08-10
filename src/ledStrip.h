@@ -11,6 +11,9 @@ void loopLeds();
 void setupLeds();
 void setPixel(int strip, int pixel, uint8_t r, uint8_t g, uint8_t b);
 
+void computeRgbUniverse(uint8_t *data, int delta, int deltaUniverse);
+void computeStrips(uint8_t *data, int delta);
+
 class ledStripDetail {
 public:
   float dimmer = 0;

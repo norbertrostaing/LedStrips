@@ -7,7 +7,7 @@ TaskHandle_t TaskForLeds;
 
 std::vector<ledStripMain> strips;
 bool outputIsDirty = true;
-bool dataIsDirty = true;
+bool dataIsDirty = false;
 bool rgbIsDirty = false;
 unsigned long TSRGB = 0;
 
@@ -15,14 +15,14 @@ const uint16_t numPixels = 340;
 
 typedef NeoPixelBus<NeoGrbFeature, X8Ws2812xMethod> NPB;
 NPB wsStrips[] = {
-    {numPixels, 4},
-    {numPixels, 5},
-    {numPixels, 13},
-    {numPixels, 14},
-    {numPixels, 15},
-    {numPixels, 16},
-    {numPixels, 32},
-    {numPixels, 33}
+    {numPixels, 4},//4
+    {numPixels, 5},//5
+    {numPixels, 13},//13
+    {numPixels, 14},//14
+    {numPixels, 15},//15
+    {numPixels, 16},//16
+    {numPixels, 32},//32
+    {numPixels, 33}//33
 };
 
 // Fonction de mappage float à float
@@ -113,7 +113,7 @@ void ledStripMain::update() {
 }
 
 void loopLeds() {
-    vTaskDelay(pdMS_TO_TICKS(5));
+    vTaskDelay(pdMS_TO_TICKS(1));
 
     if (dataIsDirty) {
         for (int i = 0; i < 16; i++) {
@@ -162,10 +162,74 @@ void setupLeds() {
     xTaskCreatePinnedToCore(
         TaskForLedsCode,
         "TaskForLeds",
-        10000,
+        2048,
         NULL,
         1,
         &TaskForLeds,
         1
     );
 }
+
+
+
+void computeRgbUniverse(uint8_t* data, int delta, int deltaUniverse)
+{
+    int strip = deltaUniverse / 2;                // 0..7
+    uint16_t base = (deltaUniverse & 1) ? 170 : 0; // demi-bande (2 univers/bande)
+    uint16_t count = wsStrips[strip].PixelCount();
+
+    RgbColor c; // réutilisé, pas d'alloc par itération
+    for (int i = 0; i < 170; ++i) {
+        uint16_t idx = base + i;
+        if (idx >= count) break;
+
+        int chan = 1 + 3*i + delta;              // delta = -1 pour Art-Net
+        if (chan + 2 > 511) break;               // borne haute
+        c.R = data[chan];
+        c.G = data[chan + 1];
+        c.B = data[chan + 2];
+
+        wsStrips[strip].SetPixelColor(idx, c);   // NeoGrbFeature gère GRB en interne
+    }
+	if (!rgbIsDirty) {
+		TSRGB = millis() + 10;
+		rgbIsDirty = true;
+	}
+}
+
+void computeStrips(uint8_t *data, int delta) {
+	long b = millis();
+	int ad = config["dmx/address"].as<int>()+delta;
+	int details = config["dmx/details"].as<int>();
+	details = constrain(details, 0, 6);
+	for (int s = 0; s < 16; s++)
+	{
+		if (ad+3 > 512) return;
+		strips[s].r = data[ad];
+		strips[s].g = data[ad + 1];
+		strips[s].b = data[ad + 2];
+		ad += 3;
+		strips[s].dimmer = data[ad] / 255.0;
+		ad += 1;
+		for (int d = 0; d < details; d++)
+		{
+			if (ad+2 > 512) return;
+			strips[s].details[d].r = data[ad];
+			strips[s].details[d].g = data[ad + 1];
+			strips[s].details[d].b = data[ad + 2];
+			ad += 3;
+			if (ad+6 > 512) return;
+			strips[s].details[d].dimmer = data[ad]/255.0;
+			strips[s].details[d].size = data[ad + 1]/255.0;
+			strips[s].details[d].position = data[ad + 2]/255.0;
+			strips[s].details[d].fadeDown = data[ad + 3]/255.0;
+			strips[s].details[d].fadeUp = data[ad + 4]/255.0;
+			strips[s].details[d].repetition = data[ad + 5]/255.0;
+			ad += 6;
+		}
+	}
+
+	dataIsDirty = true;
+	long e = millis();
+}
+

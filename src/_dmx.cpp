@@ -70,7 +70,7 @@ void setupDMX() {
   xTaskCreatePinnedToCore(
                     TaskForDMXCode,   /* Task function. */
                     "TaskForDMX",     /* name of task. */
-                    10000,       /* Stack size of task */
+                    2048,       /* Stack size of task */
                     NULL,        /* parameter of the task */
                     1,           /* priority of the task */
                     &TaskForDMX,      /* Task handle to keep track of created task */

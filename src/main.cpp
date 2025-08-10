@@ -92,64 +92,6 @@ void configUpdatedMain(String key)
 	if (key == "ledCount/16") {strips[15].nLeds = config["ledCount/16"].as<int>();}
 }
 
-void computeRgbUniverse(uint8_t *data, int delta, int deltaUniverse) {
-	int pixBuddy = config["dmx/rgbpixlink"].as<int>();
-	int currentId = 0;
-
-	int strip = deltaUniverse/2;
-	int deltaPixel = 0;
-	if (deltaUniverse%2 == 1) {
-		deltaPixel=170;
-	}
-
-	for (int i = 0; i< 170; i++) {
-		int chan = 1+(3*i)+delta;
-		if (delta <= 510) {
-			setPixel(strip, i+deltaPixel, data[chan], data[chan+1], data[chan+2]);
-		}
-	}
-	if (!rgbIsDirty) {
-		TSRGB = millis() + 10;
-		rgbIsDirty = true;
-	}
-}
-
-void computeStrips(uint8_t *data, int delta) {
-	long b = millis();
-	int ad = config["dmx/address"].as<int>()+delta;
-	int details = config["dmx/details"].as<int>();
-	details = constrain(details, 0, 6);
-	for (int s = 0; s < 16; s++)
-	{
-		if (ad+3 > 512) return;
-		strips[s].r = data[ad];
-		strips[s].g = data[ad + 1];
-		strips[s].b = data[ad + 2];
-		ad += 3;
-		strips[s].dimmer = data[ad] / 255.0;
-		ad += 1;
-		for (int d = 0; d < details; d++)
-		{
-			if (ad+2 > 512) return;
-			strips[s].details[d].r = data[ad];
-			strips[s].details[d].g = data[ad + 1];
-			strips[s].details[d].b = data[ad + 2];
-			ad += 3;
-			if (ad+6 > 512) return;
-			strips[s].details[d].dimmer = data[ad]/255.0;
-			strips[s].details[d].size = data[ad + 1]/255.0;
-			strips[s].details[d].position = data[ad + 2]/255.0;
-			strips[s].details[d].fadeDown = data[ad + 3]/255.0;
-			strips[s].details[d].fadeUp = data[ad + 4]/255.0;
-			strips[s].details[d].repetition = data[ad + 5]/255.0;
-			ad += 6;
-		}
-	}
-
-	dataIsDirty = true;
-	long e = millis();
-}
-
 
 
 void onArtnetFrame(uint16_t universeRcv, uint16_t length, uint8_t sequence, uint8_t *data, IPAddress remoteIP)

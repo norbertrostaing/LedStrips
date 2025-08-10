@@ -7,14 +7,14 @@ Artnet artnet;
 
 void loopArtnet()
 {
-  // we call the read function inside the loop
-  artnet.read();
+  while(artnet.read() != 0) {}
 }
 
 
 void TaskForArtnetCode( void * pvParameters ){
   for(;;){
-    delay(5);
+    vTaskDelay(pdMS_TO_TICKS(1));
+    //taskYIELD();
     loopArtnet();
   } 
 }
@@ -30,11 +30,11 @@ void setupArtnet()
   xTaskCreatePinnedToCore(
                     TaskForArtnetCode,   /* Task function. */
                     "TaskForArtnet",     /* name of task. */
-                    10000,       /* Stack size of task */
+                    8192,       /* Stack size of task */
                     NULL,        /* parameter of the task */
                     1,           /* priority of the task */
                     &TaskForArtnet,      /* Task handle to keep track of created task */
-                    1);          /* pin task to core 0 */                  
+                    0);          /* pin task to core 0 */                  
 
 
 }
