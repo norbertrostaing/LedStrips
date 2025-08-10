@@ -2,9 +2,9 @@
 
 TaskHandle_t TaskForDMX;
 
-int transmitPin = 4;
+int transmitPin = 2;
 int receivePin = 5;
-int enablePin = 4;
+int enablePin = 2;
 
 dmx_port_t dmxPort = 1;
 
@@ -40,7 +40,6 @@ void loopDMX() {
         dmxIsConnected = true;
       }
       dmx_read(dmxPort, dmxDataRcv, packet.size);
-      //Serial.println(packet.size);
       if (packet.size == 513) {
         memcpy(dmxData, dmxDataRcv, 512);
         onDmxFrame();

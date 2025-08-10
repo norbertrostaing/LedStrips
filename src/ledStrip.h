@@ -4,9 +4,12 @@
 
 extern bool outputIsDirty;
 extern bool dataIsDirty;
+extern bool rgbIsDirty;
+extern unsigned long TSRGB;
 
 void loopLeds();
 void setupLeds();
+void setPixel(int strip, int pixel, uint8_t r, uint8_t g, uint8_t b);
 
 class ledStripDetail {
 public:
@@ -26,6 +29,11 @@ public:
   bool endSolidLoops = false;
   bool beginFadeLoops = false;
   bool endFadeLoops = false;
+
+  float fadeInStart;
+  float solidStart;
+  float solidEnd;
+  float fadeOutEnd;
   
   ledStripDetail();
   void update();
