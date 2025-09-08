@@ -42,6 +42,17 @@ void setPixel(int strip, int pixel, uint8_t r, uint8_t g, uint8_t b) {
     wsStrips[nStrip].SetPixelColor(pixel+deltaPix, c);
 }
 
+RgbColor getPixel(int strip, int pixel) {
+    int nStrip = strip;
+    int deltaPix = 0;
+    if (strip >= 8) {
+        nStrip -= 8;
+        deltaPix = strips[nStrip].nLeds;
+    }
+    RgbColor c = wsStrips[nStrip].GetPixelColor(pixel+deltaPix);
+    return c;
+}
+
 // --- Classe ledStripDetail ---
 
 ledStripDetail::ledStripDetail() {
@@ -107,6 +118,17 @@ void ledStripMain::update() {
                 bb = mapFloat(grad, 0, 1, bb, details[d].b);
             }
         }
+
+        RgbColor actual = getPixel(id, i);
+
+        if (rr > actual.R + soothUp) {r = actual.R+soothUp; } 
+        if (gg > actual.G + soothUp) {g = actual.G+soothUp; } 
+        if (bb > actual.B + soothUp) {b = actual.B+soothUp; } 
+
+        if (rr < actual.R - smoothDown) {r = actual.R-smoothDown; } 
+        if (gg < actual.G - smoothDown) {g = actual.G-smoothDown; } 
+        if (bb < actual.B - smoothDown) {b = actual.B-smoothDown; } 
+
 
         setPixel(id, i, uint8_t(rr), uint8_t(gg), uint8_t(bb));
     }
@@ -177,7 +199,7 @@ void computeRgbUniverse(uint8_t* data, int delta, int deltaUniverse)
     int strip = deltaUniverse / 2;                // 0..7
     uint16_t base = (deltaUniverse & 1) ? 170 : 0; // demi-bande (2 univers/bande)
     uint16_t count = wsStrips[strip].PixelCount();
-
+    if (deltaUniverse<0 || deltaUniverse >16) return;
     RgbColor c; // réutilisé, pas d'alloc par itération
     for (int i = 0; i < 170; ++i) {
         uint16_t idx = base + i;
@@ -192,7 +214,7 @@ void computeRgbUniverse(uint8_t* data, int delta, int deltaUniverse)
         wsStrips[strip].SetPixelColor(idx, c);   // NeoGrbFeature gère GRB en interne
     }
 	if (!rgbIsDirty) {
-		TSRGB = millis() + 10;
+		TSRGB = millis() + 5;
 		rgbIsDirty = true;
 	}
 }
@@ -208,9 +230,11 @@ void computeStrips(uint8_t *data, int delta) {
 		strips[s].r = data[ad];
 		strips[s].g = data[ad + 1];
 		strips[s].b = data[ad + 2];
-		ad += 3;
+    	ad += 3;
 		strips[s].dimmer = data[ad] / 255.0;
-		ad += 1;
+	    strips[s].soothUp = 255-data[ad + 1];
+	    strips[s].smoothDown = 255-data[ad + 2];
+		ad += 3;
 		for (int d = 0; d < details; d++)
 		{
 			if (ad+2 > 512) return;

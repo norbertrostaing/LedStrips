@@ -47,6 +47,8 @@ class ledStripMain {
 public:
     float dimmer;
     float r, g, b;
+    int soothUp;
+    int smoothDown;
     int nLeds;
     int id;
     std::vector<ledStripDetail> details; // Tableau dynamique de LedStripDetail

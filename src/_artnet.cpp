@@ -14,7 +14,6 @@ void loopArtnet()
 void TaskForArtnetCode( void * pvParameters ){
   for(;;){
     vTaskDelay(pdMS_TO_TICKS(1));
-    //taskYIELD();
     loopArtnet();
   } 
 }
@@ -30,7 +29,7 @@ void setupArtnet()
   xTaskCreatePinnedToCore(
                     TaskForArtnetCode,   /* Task function. */
                     "TaskForArtnet",     /* name of task. */
-                    8192,       /* Stack size of task */
+                    12288,       /* Stack size of task */
                     NULL,        /* parameter of the task */
                     1,           /* priority of the task */
                     &TaskForArtnet,      /* Task handle to keep track of created task */
