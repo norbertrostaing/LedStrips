@@ -14,6 +14,8 @@ unsigned long TSRGB = 0;
 const uint16_t numPixels = 340;
 
 typedef NeoPixelBus<NeoGrbFeature, X8Ws2812xMethod> NPB;
+//typedef NeoPixelBus<NeoGrbFeature, NeoEsp32I2s1X8Ws2811Method> NPB;
+//typedef NeoPixelBus<NeoGrbFeature, NeoEsp32I2s0X8Ws2812xMethod> NPB;
 NPB wsStrips[] = {
     {numPixels, 4},//4
     {numPixels, 5},//5
@@ -32,24 +34,12 @@ float mapFloat(float x, float in_min, float in_max, float out_min, float out_max
 
 // Écrit un pixel sur le ruban spécifié
 void setPixel(int strip, int pixel, uint8_t r, uint8_t g, uint8_t b) {
-    int nStrip = strip;
-    int deltaPix = 0;
-    if (strip >= 8) {
-        nStrip -= 8;
-        deltaPix = strips[nStrip].nLeds;
-    }
     RgbColor c(r, g, b);
-    wsStrips[nStrip].SetPixelColor(pixel+deltaPix, c);
+    wsStrips[strip].SetPixelColor(pixel, c);
 }
 
 RgbColor getPixel(int strip, int pixel) {
-    int nStrip = strip;
-    int deltaPix = 0;
-    if (strip >= 8) {
-        nStrip -= 8;
-        deltaPix = strips[nStrip].nLeds;
-    }
-    RgbColor c = wsStrips[nStrip].GetPixelColor(pixel+deltaPix);
+    RgbColor c = wsStrips[strip].GetPixelColor(pixel);
     return c;
 }
 
@@ -135,26 +125,20 @@ void ledStripMain::update() {
 }
 
 void loopLeds() {
-    vTaskDelay(pdMS_TO_TICKS(1));
-
     if (dataIsDirty) {
-        for (int i = 0; i < 16; i++) {
+        for (int i = 0; i < 8; i++) {
             strips[i].update();
         }
         dataIsDirty = false;
         outputIsDirty = true;
     }
 
-    if (rgbIsDirty && TSRGB < millis()) {
-        rgbIsDirty = false;
-        outputIsDirty = true;
-    }
-
     if (outputIsDirty) {
-        outputIsDirty = false;
         for (int i = 0; i < 8; i++) {
-            wsStrips[i].Show(false);
+            wsStrips[i].Show();
         }
+        outputIsDirty = false;
+        vTaskDelay(pdMS_TO_TICKS(15));
     }
 }
 
@@ -162,12 +146,13 @@ void loopLeds() {
 void TaskForLedsCode(void *pvParameters) {
     for (;;) {
         loopLeds();
+        vTaskDelay(pdMS_TO_TICKS(3));
     }
 }
 
 
 void setupLeds() {
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < 8; i++) {
         strips.emplace_back();
         strips[i].nLeds = config["ledCount/" + String(i + 1)].as<int>();
         strips[i].id    = i;
@@ -193,38 +178,12 @@ void setupLeds() {
 }
 
 
-
-void computeRgbUniverse(uint8_t* data, int delta, int deltaUniverse)
-{
-    int strip = deltaUniverse / 2;                // 0..7
-    uint16_t base = (deltaUniverse & 1) ? 170 : 0; // demi-bande (2 univers/bande)
-    uint16_t count = wsStrips[strip].PixelCount();
-    if (deltaUniverse<0 || deltaUniverse >16) return;
-    RgbColor c; // réutilisé, pas d'alloc par itération
-    for (int i = 0; i < 170; ++i) {
-        uint16_t idx = base + i;
-        if (idx >= count) break;
-
-        int chan = 1 + 3*i + delta;              // delta = -1 pour Art-Net
-        if (chan + 2 > 511) break;               // borne haute
-        c.R = data[chan];
-        c.G = data[chan + 1];
-        c.B = data[chan + 2];
-
-        wsStrips[strip].SetPixelColor(idx, c);   // NeoGrbFeature gère GRB en interne
-    }
-	if (!rgbIsDirty) {
-		TSRGB = millis() + 5;
-		rgbIsDirty = true;
-	}
-}
-
 void computeStrips(uint8_t *data, int delta) {
 	long b = millis();
 	int ad = config["dmx/address"].as<int>()+delta;
 	int details = config["dmx/details"].as<int>();
 	details = constrain(details, 0, 6);
-	for (int s = 0; s < 16; s++)
+	for (int s = 0; s < 8; s++)
 	{
 		if (ad+3 > 512) return;
 		strips[s].r = data[ad];

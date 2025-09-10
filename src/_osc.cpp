@@ -7,12 +7,12 @@ TaskHandle_t TaskForOsc;
 
 void loopOsc() {
   OscWiFi.update();  // should be called to receive + send osc
-  vTaskDelay(pdMS_TO_TICKS(1));
 }
 
 void TaskForOscCode( void * pvParameters ){
   for(;;){
     loopOsc();
+    vTaskDelay(pdMS_TO_TICKS(3));
   } 
 }
 

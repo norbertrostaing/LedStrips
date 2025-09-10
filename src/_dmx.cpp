@@ -43,6 +43,7 @@ void loopDMX() {
       if (packet.size == 513) {
         memcpy(dmxData, dmxDataRcv, 512);
         onDmxFrame();
+        vTaskDelay(pdMS_TO_TICKS(10));
       } else if (packet.size == 1)
         packetErrors++;
         
@@ -62,6 +63,7 @@ void loopDMX() {
 void TaskForDMXCode( void * pvParameters ){
   for(;;){
     loopDMX();
+    vTaskDelay(pdMS_TO_TICKS(3));
   } 
 }
 
@@ -72,7 +74,7 @@ void setupDMX() {
                     "TaskForDMX",     /* name of task. */
                     2048,       /* Stack size of task */
                     NULL,        /* parameter of the task */
-                    1,           /* priority of the task */
+                    4,           /* priority of the task */
                     &TaskForDMX,      /* Task handle to keep track of created task */
                     1);          /* pin task to core 0 */                  
 
