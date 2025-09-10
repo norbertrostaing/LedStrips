@@ -121,13 +121,13 @@ void ledStripMain::update() {
 
         RgbColor actual = getPixel(id, i);
 
-        if (rr > actual.R + soothUp) {r = actual.R+soothUp; } 
-        if (gg > actual.G + soothUp) {g = actual.G+soothUp; } 
-        if (bb > actual.B + soothUp) {b = actual.B+soothUp; } 
+        if (rr > actual.R + soothUp) {rr = actual.R+soothUp; } 
+        if (gg > actual.G + soothUp) {gg = actual.G+soothUp; } 
+        if (bb > actual.B + soothUp) {bb = actual.B+soothUp; } 
 
-        if (rr < actual.R - smoothDown) {r = actual.R-smoothDown; } 
-        if (gg < actual.G - smoothDown) {g = actual.G-smoothDown; } 
-        if (bb < actual.B - smoothDown) {b = actual.B-smoothDown; } 
+        if (rr < actual.R - smoothDown) {rr = actual.R-smoothDown; } 
+        if (gg < actual.G - smoothDown) {gg = actual.G-smoothDown; } 
+        if (bb < actual.B - smoothDown) {bb = actual.B-smoothDown; } 
 
 
         setPixel(id, i, uint8_t(rr), uint8_t(gg), uint8_t(bb));
