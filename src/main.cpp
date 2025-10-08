@@ -1,12 +1,12 @@
 #include <Arduino.h>
 
-#include "_config.h"
-#include "_ethernet.h"
-#include "_wifi.h"
-#include "_dmx.h"
-#include "_artnet.h"
-#include "_osc.h"
-#include "_web.h"
+#include "Olgalimex/_config.h"
+#include "Olgalimex/_ethernet.h"
+#include "Olgalimex/_wifi.h"
+#include "Olgalimex/_dmx.h"
+#include "Olgalimex/_artnet.h"
+#include "Olgalimex/_osc.h"
+#include "Olgalimex/_web.h"
 
 #include "ledStrip.h"
 
